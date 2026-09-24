@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>Job-Agent</title>
+  <meta name="description" content="Nur die Stellen, die wirklich zu dir passen. Persönliche Job-Suche für technische Fachkräfte." />
+  <meta name="theme-color" content="#0a0a12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Job-Agent" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ====================================================
+     * RESET & BASIS
+     * ==================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:        #0a0a12;
+      --bg-surface:     #111118;
+      --bg-card:        #16161f;
+      --bg-input:       #1c1c28;
+      --bg-hover:       #1f1f2e;
+      --border:         #252535;
+      --border-focus:   #4f6ef7;
+      --accent:         #4f6ef7;
+      --accent-hover:   #6b85f8;
+      --accent-dim:     rgba(79,110,247,.15);
+      --text-primary:   #f0f0f8;
+      --text-secondary: #9090b0;
+      --text-muted:     #5a5a78;
+      --success:        #22c55e;
+      --warn:           #f59e0b;
+      --danger:         #ef4444;
+      --chip-bg:        rgba(79,110,247,.18);
+      --chip-border:    rgba(79,110,247,.35);
+      --space-xs: 4px; --space-sm: 8px; --space-md: 16px;
+      --space-lg: 24px; --space-xl: 32px;
+      --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px;
+      --shadow-sm:     0 1px 3px rgba(0,0,0,.5);
+      --shadow-md:     0 4px 16px rgba(0,0,0,.6);
+      --shadow-accent: 0 0 24px rgba(79,110,247,.25);
+    }
+
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-base); color: var(--text-primary);
+      line-height: 1.5; min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ====================================================
+     * LAYOUT
+     * ==================================================== */
+    .app { max-width: 520px; margin: 0 auto; padding: 0 var(--space-md) 80px; }
+
+    /* ====================================================
+     * HEADER
+     * ==================================================== */
+    .header { padding: var(--space-xl) 0 var(--space-lg); text-align: center; }
+    .header__logo {
+      display: inline-flex; align-items: center; gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+    .header__icon {
+      width: 36px; height: 36px; background: var(--accent); border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-accent); flex-shrink: 0;
+    }
+    .header__icon svg { width: 20px; height: 20px; fill: #fff; }
+    .header__title { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+    .header__subtitle { font-size: .875rem; color: var(--text-secondary); margin-top: 2px; }
+
+    /* ====================================================
+     * SUCHKARTE
+     * ==================================================== */
+    .search-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: var(--space-lg);
+      box-shadow: var(--shadow-md); margin-bottom: var(--space-md);
+    }
+    .input-group { margin-bottom: var(--space-md); }
+    .input-label {
+      display: block; font-size: .75rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: var(--space-xs);
+    }
+    .input-wrapper { position: relative; }
+    .input-wrapper .input-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); pointer-events: none; width: 16px; height: 16px;
+    }
+    .input-field {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 12px 12px 12px 38px;
+      font-size: .9375rem; color: var(--text-primary); font-family: inherit;
+      outline: none; transition: border-color .2s, box-shadow .2s; -webkit-appearance: none;
+    }
+    .input-field::placeholder { color: var(--text-muted); }
+    .input-field:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+    .radius-row { display: flex; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+    .radius-btn {
+      flex: 1; padding: 8px 4px; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); color: var(--text-secondary); font-size: .8125rem;
+      font-weight: 500; font-family: inherit; cursor: pointer; transition: all .15s; text-align: center;
+    }
+    .radius-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .data-source-banner {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; margin-bottom: 12px;
+      border-radius: var(--radius-md); font-size: .8125rem; font-weight: 600;
+    }
+    .data-source-banner--real { background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.4); color: #2ecc71; }
+    .data-source-banner--test { background: var(--accent-dim); border: 1px solid var(--border); color: var(--text-secondary); }
+    .radius-btn.active {
+      background: var(--accent-dim); border-color: var(--accent);
+      color: var(--accent-hover); font-weight: 600;
+    }
+
+    .btn-primary {
+      width: 100%; padding: 14px; background: var(--accent); border: none;
+      border-radius: var(--radius-md); color: #fff; font-size: 1rem; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: background .15s, transform .1s, box-shadow .15s;
+      box-shadow: var(--shadow-accent); letter-spacing: .01em;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(.98); box-shadow: none; }
+
+    /* ====================================================
+     * FILTERBEREICH
+     * ==================================================== */
+    .filter-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); margin-bottom: var(--space-md); overflow: hidden;
+    }
+    .filter-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-md) var(--space-lg); cursor: pointer; user-select: none;
+    }
+    .filter-header-left { display: flex; align-items: center; gap: var(--space-sm); }
+    .filter-header-left svg { color: var(--accent); width: 16px; height: 16px; }
+    .filter-header__title { font-size: .875rem; font-weight: 600; }
+    .filter-badge {
+      background: var(--accent-dim); border: 1px solid var(--chip-border); color: var(--accent-hover);
+      border-radius: 99px; font-size: .6875rem; font-weight: 700; padding: 2px 8px; display: none;
+    }
+    .filter-badge.visible { display: inline-block; }
+    .filter-toggle-icon { color: var(--text-muted); transition: transform .2s; width: 16px; height: 16px; }
+    .filter-body { padding: 0 var(--space-lg) var(--space-lg); border-top: 1px solid var(--border); }
+    .filter-body.collapsed { display: none; }
+    .filter-section { padding-top: var(--space-md); }
+    .filter-section__title {
+      font-size: .75rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: var(--space-sm);
+    }
+
+    /* Radio-Gruppe */
+    .radio-group { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+    .radio-option { position: relative; }
+    .radio-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-option label {
+      display: inline-flex; align-items: center; padding: 7px 14px;
+      background: var(--bg-input); border: 1px solid var(--border); border-radius: 99px;
+      font-size: .8125rem; font-weight: 500; color: var(--text-secondary);
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .radio-option input[type="radio"]:checked + label {
+      background: var(--accent-dim); border-color: var(--accent);
+      color: var(--accent-hover); font-weight: 600;
+    }
+
+    /* Toggle-Grid */
+    .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+    .toggle-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 10px var(--space-md);
+      cursor: pointer; transition: background .15s, border-color .15s; gap: var(--space-sm);
+    }
+    .toggle-item:hover { background: var(--bg-hover); }
+    .toggle-item.active { background: var(--accent-dim); border-color: var(--accent); }
+    .toggle-item__label { font-size: .8rem; font-weight: 500; color: var(--text-secondary); line-height: 1.3; }
+    .toggle-item.active .toggle-item__label { color: var(--accent-hover); }
+
+    /* Switch */
+    .toggle-switch { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-switch-track {
+      position: absolute; inset: 0; background: var(--border);
+      border-radius: 99px; transition: background .2s; cursor: pointer;
+    }
+    .toggle-switch-track::before {
+      content: ''; position: absolute; width: 12px; height: 12px;
+      background: var(--text-muted); border-radius: 50%;
+      left: 3px; top: 3px; transition: transform .2s, background .2s;
+    }
+    .toggle-switch input:checked + .toggle-switch-track { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-switch-track::before { transform: translateX(14px); background: #fff; }
+
+    .filter-divider { height: 1px; background: var(--border); margin: var(--space-md) 0 0; }
+    .filter-reset-row { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border); text-align: center; }
+    .btn-reset {
+      background: none; border: none; color: var(--text-muted); font-size: .8125rem;
+      font-family: inherit; cursor: pointer; padding: 4px 8px;
+      border-radius: var(--radius-sm); transition: color .15s;
+    }
+    .btn-reset:hover { color: var(--text-secondary); }
+
+    /* ====================================================
+     * ERGEBNISBEREICH
+     * ==================================================== */
+    .results-section { display: none; }
+    .results-section.visible { display: block; }
+
+    /* Lade-Animation */
+    .loading-overlay { display: none; text-align: center; padding: var(--space-xl) 0; }
+    .loading-overlay.visible { display: block; }
+    .loading-spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto var(--space-md);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: .875rem; color: var(--text-muted); }
+
+    /* Statistik */
+    .results-stats {
+      font-size: .8125rem; color: var(--text-muted); margin-bottom: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center;
+    }
+    .stat-item { display: flex; align-items: center; gap: 5px; }
+    .stat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .stat-dot--total  { background: var(--text-muted); }
+    .stat-dot--hidden { background: var(--danger); }
+    .stat-dot--found  { background: var(--success); }
+    .stat-value { font-weight: 700; color: var(--text-primary); }
+
+    /* Aktive-Filter-Chips (Ergebnisbereich) */
+    .results-chips {
+      display: flex; flex-wrap: wrap; gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--chip-bg); border: 1px solid var(--chip-border);
+      border-radius: 99px; padding: 4px 10px;
+      font-size: .75rem; font-weight: 500; color: var(--accent-hover); white-space: nowrap;
+    }
+    .chip__remove {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; background: rgba(79,110,247,.25);
+      border-radius: 50%; cursor: pointer; font-size: 10px;
+      line-height: 1; transition: background .15s; flex-shrink: 0;
+    }
+    .chip__remove:hover { background: rgba(79,110,247,.5); }
+
+    /* Kein Ergebnis */
+    .no-results { text-align: center; padding: var(--space-xl) var(--space-lg); }
+    .no-results__icon { font-size: 2rem; margin-bottom: var(--space-sm); }
+    .no-results__title { font-size: .9375rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .no-results__text { font-size: .8125rem; color: var(--text-muted); }
+
+    /* Arbeitszeit-Warnung */
+    .worktime-warning {
+      text-align: center; padding: var(--space-lg); background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.25); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-md);
+    }
+    .worktime-warning__text { font-size: .875rem; color: var(--warn); font-weight: 500; }
+
+    /* ====================================================
+     * JOB-KARTE
+     * ==================================================== */
+    .job-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: var(--space-lg);
+      margin-bottom: var(--space-md); box-shadow: var(--shadow-sm);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .job-card:hover { border-color: #353548; box-shadow: var(--shadow-md); }
+
+    .job-card__header { display: flex; align-items: flex-start; gap: var(--space-md); margin-bottom: var(--space-md); }
+    .job-card__logo {
+      width: 44px; height: 44px; border-radius: var(--radius-sm);
+      background: var(--bg-input); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .job-card__info { flex: 1; min-width: 0; }
+    .job-card__title { font-size: .9375rem; font-weight: 700; line-height: 1.3; margin-bottom: 2px; }
+    .job-card__company { font-size: .8125rem; color: var(--text-secondary); font-weight: 500; }
+
+    .job-card__meta { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .job-meta-item { display: inline-flex; align-items: center; gap: 4px; font-size: .75rem; color: var(--text-muted); }
+    .job-meta-item svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* Kurzbeschreibung */
+    .job-card__desc {
+      font-size: .8125rem; color: var(--text-secondary); line-height: 1.55;
+      margin-bottom: var(--space-md);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* Tags */
+    .job-card__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: var(--space-md); }
+    .tag {
+      padding: 3px 9px; border-radius: 99px;
+      font-size: .6875rem; font-weight: 600; letter-spacing: .02em; white-space: nowrap;
+    }
+    /* Vertragsart */
+    .tag--perm     { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+    .tag--fixed    { background: rgba(245,158,11,.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,.22); }
+    /* Arbeitszeit */
+    .tag--worktime { background: rgba(99,102,241,.12); color: #818cf8; border: 1px solid rgba(99,102,241,.25); }
+    /* Positive Bedingung */
+    .tag--cond-ok  { background: rgba(34,197,94,.08);  color: #6ee7b7; border: 1px solid rgba(34,197,94,.2); }
+    /* Bedingung erforderlich */
+    .tag--cond-req { background: rgba(245,158,11,.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,.22); }
+    /* Typen */
+    .tag--temp     { background: rgba(239,68,68,.1);   color: #fca5a5; border: 1px solid rgba(239,68,68,.2); }
+    .tag--recruit  { background: rgba(168,85,247,.1);  color: #d8b4fe; border: 1px solid rgba(168,85,247,.2); }
+    .tag--training { background: rgba(14,165,233,.1);  color: #7dd3fc; border: 1px solid rgba(14,165,233,.2); }
+    .tag--direct   { background: rgba(34,197,94,.08);  color: #6ee7b7; border: 1px solid rgba(34,197,94,.18); }
+
+    .job-card__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+    .job-card__source { font-size: .75rem; color: var(--text-muted); }
+    .btn-outline {
+      padding: 8px 14px; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); color: var(--text-secondary); font-size: .8125rem;
+      font-weight: 600; font-family: inherit; cursor: pointer; transition: all .15s;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn-outline:hover { background: var(--bg-hover); border-color: #353548; color: var(--text-primary); }
+
+    /* Mehr anzeigen */
+    .show-more-row { text-align: center; margin-top: var(--space-md); }
+    .btn-show-more {
+      background: none; border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 10px 24px; color: var(--text-secondary); font-size: .875rem;
+      font-family: inherit; font-weight: 500; cursor: pointer; transition: all .15s;
+    }
+    .btn-show-more:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* Footer */
+    .footer { text-align: center; padding: var(--space-xl) 0; color: var(--text-muted); font-size: .75rem; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .toggle-grid { grid-template-columns: 1fr; }
+      .radius-btn { font-size: .75rem; padding: 7px 2px; }
+    }
+    @media (min-width: 521px) { .app { padding-top: var(--space-lg); } }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header__logo">
+      <div class="header__icon">
+        <svg viewBox="0 0 24 24"><path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm-10-2h4v2h-4V5ZM4 20V9h16v11H4Z"/></svg>
+      </div>
+      <span class="header__title">Job-Agent</span>
+    </div>
+    <p class="header__subtitle">Nur die Stellen, die wirklich zu dir passen.</p>
+  </header>
+
+  <!-- ========== SUCHKARTE ========== -->
+  <section class="search-card">
+    <div class="input-group">
+      <label class="input-label" for="q">Beruf oder Suchbegriff</label>
+      <div class="input-wrapper">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="input-field" type="search" id="q"
+               placeholder="z. B. Industriemechaniker, Mechatroniker …"
+               autocomplete="off" autocorrect="off" spellcheck="false" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label" for="loc">Ort</label>
+      <div class="input-wrapper">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+        <input class="input-field" type="text" id="loc"
+               placeholder="z. B. München, Augsburg, Nürnberg …"
+               autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <span class="input-label">Umkreis</span>
+      <div class="radius-row">
+        <button class="radius-btn active" data-radius="10">10 km</button>
+        <button class="radius-btn" data-radius="25">25 km</button>
+        <button class="radius-btn" data-radius="50">50 km</button>
+        <button class="radius-btn" data-radius="100">100 km</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-search">Jobs finden</button>
+  </section>
+
+  <!-- ========== FILTERBEREICH ========== -->
+  <section class="filter-card">
+    <div class="filter-header" id="filter-header" role="button" aria-expanded="true" aria-controls="filter-body">
+      <div class="filter-header-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+        </svg>
+        <span class="filter-header__title">Filter</span>
+        <span class="filter-badge" id="filter-badge"></span>
+      </div>
+      <svg class="filter-toggle-icon" id="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </div>
+
+    <div class="filter-body" id="filter-body">
+
+      <!-- Arbeitsvertrag -->
+      <div class="filter-section">
+        <p class="filter-section__title">Arbeitsvertrag</p>
+        <div class="radio-group">
+          <div class="radio-option">
+            <input type="radio" name="contract" id="c-egal" value="egal" checked />
+            <label for="c-egal">Egal</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="contract" id="c-perm" value="permanent" />
+            <label for="c-perm">Nur unbefristet</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="contract" id="c-fixed" value="fixed_term" />
+            <label for="c-fixed">Nur befristet</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <!-- Arbeitszeit -->
+      <div class="filter-section">
+        <p class="filter-section__title">Arbeitszeit</p>
+        <div class="toggle-grid">
+          <div class="toggle-item active" data-toggle="fullTime">
+            <span class="toggle-item__label">Vollzeit</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-fullTime" checked />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item active" data-toggle="partTime">
+            <span class="toggle-item__label">Teilzeit</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-partTime" checked />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <!-- Arbeitsbedingungen anzeigen -->
+      <!-- Toggle AN = diese Bedingung ist akzeptabel (Job bleibt sichtbar)       -->
+      <!-- Toggle AUS (Standard) = Jobs mit dieser Bedingung REQUIRED ausblenden  -->
+      <div class="filter-section">
+        <p class="filter-section__title">Arbeitsbedingungen anzeigen</p>
+        <div class="toggle-grid">
+          <div class="toggle-item" data-toggle="showShift">
+            <span class="toggle-item__label">Schichtarbeit</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-showShift" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item" data-toggle="showNight">
+            <span class="toggle-item__label">Nacht &amp; Wochenende</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-showNight" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item" data-toggle="showTravel">
+            <span class="toggle-item__label">Reisebereitschaft</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-showTravel" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item" data-toggle="showOnCall">
+            <span class="toggle-item__label">Rufbereitschaft</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-showOnCall" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <!-- Stellenart ausblenden -->
+      <!-- Toggle AN = diese Stellenart aus den Ergebnissen entfernen -->
+      <div class="filter-section">
+        <p class="filter-section__title">Stellenart ausblenden</p>
+        <div class="toggle-grid">
+          <div class="toggle-item" data-toggle="hideTemp">
+            <span class="toggle-item__label">Zeitarbeit</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-hideTemp" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item" data-toggle="hideRecruiter">
+            <span class="toggle-item__label">Personalvermittlung</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-hideRecruiter" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+          <div class="toggle-item" data-toggle="hideTraining">
+            <span class="toggle-item__label">Ausbildung &amp; Praktika</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="t-hideTraining" />
+              <span class="toggle-switch-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /filter-body -->
+
+    <div class="filter-reset-row">
+      <button class="btn-reset" id="btn-reset">↺ Filter zurücksetzen</button>
+    </div>
+  </section>
+
+  <!-- ========== LADE-ANIMATION ========== -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Stellen werden geprüft …</p>
+  </div>
+
+  <!-- ========== ERGEBNISBEREICH ========== -->
+  <section class="results-section" id="results-section">
+    <div id="data-source-banner" aria-live="polite"></div>
+    <div class="results-stats" id="results-stats" aria-live="polite"></div>
+    <div class="results-chips" id="results-chips" aria-live="polite"></div>
+    <div id="job-cards"></div>
+  </section>
+
+  <footer class="footer">Job-Agent · Testbetrieb · Keine echten Stellenangebote</footer>
+</div>
+
+<!-- ====================================================
+     JAVASCRIPT
+     ==================================================== -->
+<script>
+'use strict';
+
+/* ======================================================
+ * 1. TESTDATEN
+ *    Felder: id, emoji, title, company, location,
+ *    distanceKm, publishedAt, source, sourceUrl,
+ *    description, contractType, employmentTypes,
+ *    isTemporaryWork, isRecruiter, isTrainingOrInternship,
+ *    shiftWork, nightWeekendWork, travel, onCall
+ *
+ *    Condition-Werte: 'required' | 'not_required' | 'unknown'
+ * ====================================================== */
+const JOBS = [
+
+  // 1 — Industriemechaniker · unbefristet · VZ · keine Schichtarbeit (Tagschicht)
+  {
+    id: 1, emoji: '🔩',
+    title: 'Industriemechaniker (m/w/d)',
+    company: 'Maschinenbau Müller GmbH',
+    location: 'Augsburg', distanceKm: 45,
+    publishedAt: 'vor 2 Tagen', source: 'StepStone',
+    sourceUrl: 'https://www.stepstone.de',
+    description: 'Instandhaltung und Reparatur von Produktionsanlagen und Fertigungsmaschinen. ' +
+                 'Reine Tagschicht (6–14 Uhr), kein Schichtbetrieb. 38-Stunden-Woche, 30 Tage Urlaub.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 2 — Mechatroniker · unbefristet · VZ · 3-Schicht-System erforderlich
+  {
+    id: 2, emoji: '⚙️',
+    title: 'Mechatroniker (m/w/d) – 3-Schicht-System',
+    company: 'AutoParts Bayern AG',
+    location: 'Ingolstadt', distanceKm: 75,
+    publishedAt: 'vor 1 Tag', source: 'Indeed',
+    sourceUrl: 'https://www.indeed.de',
+    description: 'Wartung und Störungsbeseitigung an automatisierten Fertigungslinien. ' +
+                 'Einsatz im verbindlichen 3-Schicht-Betrieb (Früh/Spät/Nacht), Wechsel alle 2 Wochen.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 3 — Elektroniker für Betriebstechnik · befristet · VZ · Nacht- und Wochenendarbeit erforderlich
+  {
+    id: 3, emoji: '⚡',
+    title: 'Elektroniker für Betriebstechnik (m/w/d)',
+    company: 'Chemiewerk Leverkusen GmbH',
+    location: 'Leverkusen', distanceKm: 530,
+    publishedAt: 'vor 3 Tagen', source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com',
+    description: 'Betreuung elektrischer Anlagen im laufenden Chemiebetrieb. ' +
+                 'Einsätze an Wochenenden und in der Nacht sind ausdrücklicher Bestandteil der Stelle (24/7-Betrieb).',
+    contractType: 'fixed_term',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 4 — Servicetechniker · unbefristet · VZ · Reisebereitschaft erforderlich
+  {
+    id: 4, emoji: '🔧',
+    title: 'Servicetechniker Maschinenbau (m/w/d) – Bundesweiter Außendienst',
+    company: 'ProServ Anlagentechnik GmbH',
+    location: 'München', distanceKm: 8,
+    publishedAt: 'heute', source: 'Xing',
+    sourceUrl: 'https://www.xing.com',
+    description: 'Montage, Inbetriebnahme und Wartung von Sondermaschinen bei Kunden in Deutschland. ' +
+                 'Reisebereitschaft von 70–80 % ist zwingend erforderlich. Dienstwagen inklusive.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'required', onCall: 'not_required',
+  },
+
+  // 5 — Anlagenmechaniker · unbefristet · VZ · Rufbereitschaft erforderlich
+  {
+    id: 5, emoji: '🏭',
+    title: 'Anlagenmechaniker SHK (m/w/d)',
+    company: 'Stadtwerke Nürnberg GmbH',
+    location: 'Nürnberg', distanceKm: 165,
+    publishedAt: 'vor 5 Tagen', source: 'StepStone',
+    sourceUrl: 'https://www.stepstone.de',
+    description: 'Betrieb und Instandhaltung der Wärme- und Wasserversorgungsanlagen. ' +
+                 'Rufbereitschaft im rollierenden Wechsel (ca. 1 Woche/Monat) ist Pflichtbestandteil der Stelle.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'required',
+  },
+
+  // 6 — CNC-Zerspanungsmechaniker · unbefristet · Teilzeit · ohne Schichtbetrieb
+  {
+    id: 6, emoji: '🎯',
+    title: 'CNC-Zerspanungsmechaniker (m/w/d) – Teilzeit',
+    company: 'Präzisionsteile Schmid GmbH',
+    location: 'Landsberg am Lech', distanceKm: 55,
+    publishedAt: 'vor 4 Tagen', source: 'Monster',
+    sourceUrl: 'https://www.monster.de',
+    description: 'Rüsten, Bedienen und Überwachen von CNC-Dreh- und Fräsmaschinen. ' +
+                 'Kein Schichtbetrieb – reine Tagstelle, 20–30 Stunden/Woche, flexibel planbar.',
+    contractType: 'permanent',
+    employmentTypes: ['part_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 7 — Industriemechaniker · Zeitarbeit
+  {
+    id: 7, emoji: '🔄',
+    title: 'Industriemechaniker (m/w/d) – Zeitarbeit',
+    company: 'Randstad Deutschland GmbH (Automotive-Kunde)',
+    location: 'München', distanceKm: 12,
+    publishedAt: 'vor 1 Tag', source: 'Jobware',
+    sourceUrl: 'https://www.jobware.de',
+    description: 'Einsatz bei einem namhaften Automobilhersteller in der Fahrzeugmontage und Endkontrolle. ' +
+                 'Zeitarbeitsstelle über Randstad – Übernahme durch den Kunden nach 6 Monaten möglich.',
+    contractType: 'fixed_term',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: true, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 8 — Elektroniker · über Personalvermittlung
+  {
+    id: 8, emoji: '🤝',
+    title: 'Elektroniker für Automatisierungstechnik (m/w/d)',
+    company: 'Heidrick & Struggles GmbH (Personalvermittlung)',
+    location: 'München', distanceKm: 5,
+    publishedAt: 'vor 2 Tagen', source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com',
+    description: 'Direkte Vermittlung zu einem mittelständischen Sondermaschinenbauer in München. ' +
+                 'Attraktives Gehaltspaket (58–68 k€), 30 Tage Urlaub, keine Schichtarbeit erwartet.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: true, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 9 — Ausbildung Mechatroniker
+  {
+    id: 9, emoji: '🎓',
+    title: 'Ausbildung zum Mechatroniker (m/w/d)',
+    company: 'Siemens AG – Berufsausbildung',
+    location: 'München', distanceKm: 10,
+    publishedAt: 'vor 1 Woche', source: 'Ausbildung.de',
+    sourceUrl: 'https://www.ausbildung.de',
+    description: '3,5-jährige Berufsausbildung in der Mechatronik (IHK). Ausbildungsstart September 2025. ' +
+                 'Azubi-Netz, Sportangebote und übertarifliche Vergütung inklusive.',
+    contractType: 'fixed_term',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: true,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 10 — Praktikum Instandhaltung
+  {
+    id: 10, emoji: '📋',
+    title: 'Praktikum Instandhaltung / Maintenance (m/w/d)',
+    company: 'MAN Truck & Bus SE',
+    location: 'München', distanceKm: 9,
+    publishedAt: 'vor 3 Tagen', source: 'Praktikum.info',
+    sourceUrl: 'https://www.praktikum.info',
+    description: 'Sechs Monate Pflicht- oder freiwilliges Praktikum in der Instandhaltungsabteilung. ' +
+                 'Begleitung erfahrener Techniker bei vorbeugender Wartung und Fehleranalyse.',
+    contractType: 'fixed_term',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: true,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 11 — Werkstudent im technischen Bereich
+  {
+    id: 11, emoji: '📐',
+    title: 'Werkstudent Maschinenbau / Elektrotechnik (m/w/d)',
+    company: 'Linde Engineering GmbH',
+    location: 'Pullach bei München', distanceKm: 15,
+    publishedAt: 'vor 6 Tagen', source: 'Stellenanzeigen.de',
+    sourceUrl: 'https://www.stellenanzeigen.de',
+    description: 'Unterstützung des Ingenieurteams bei Planung und Dokumentation von Verfahrensanlagen. ' +
+                 '15–20 h/Woche, flexible Zeiteinteilung zur Vorlesungszeit, Remote-Anteil möglich.',
+    contractType: 'fixed_term',
+    employmentTypes: ['part_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: true,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 12 — Befristet + Schichtarbeit + Reisebereitschaft
+  {
+    id: 12, emoji: '✈️',
+    title: 'Projektingenieur Inbetriebnahme (m/w/d) – International',
+    company: 'Voith GmbH & Co. KGaA',
+    location: 'Heidenheim an der Brenz', distanceKm: 140,
+    publishedAt: 'vor 4 Tagen', source: 'Xing',
+    sourceUrl: 'https://www.xing.com',
+    description: 'Befristet auf 18 Monate: Inbetriebnahme von Wasserturbinen weltweit. ' +
+                 'Schichtarbeit vor Ort und intensive internationale Reisetätigkeit sind zwingend erforderlich.',
+    contractType: 'fixed_term',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'required', nightWeekendWork: 'not_required',
+    travel: 'required', onCall: 'not_required',
+  },
+
+  // 13 — IT-Administrator · unbekannte Schichtangabe (Sonderfall "unknown")
+  {
+    id: 13, emoji: '💻',
+    title: 'IT-Administrator (m/w/d) Netzwerk & Server',
+    company: 'Bayern Soft GmbH',
+    location: 'München', distanceKm: 7,
+    publishedAt: 'heute', source: 'StepStone',
+    sourceUrl: 'https://www.stepstone.de',
+    description: 'Betreuung der IT-Infrastruktur (Windows Server, VMware, Cisco Netzwerk). ' +
+                 'Angaben zu Schichtarbeit wurden in der Stellenanzeige nicht gemacht.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'unknown', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+
+  // 14 — Softwareentwickler · Vollzeit + Teilzeit · direkte Festanstellung
+  {
+    id: 14, emoji: '🐍',
+    title: 'Softwareentwickler Python / Datenpipelines (m/w/d)',
+    company: 'Medidata Solutions GmbH',
+    location: 'München', distanceKm: 4,
+    publishedAt: 'vor 2 Tagen', source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com',
+    description: 'Entwicklung von ETL-Pipelines und Automatisierungslösungen in Python und SQL. ' +
+                 '60 % Remote, Vollzeit oder Teilzeit (min. 30 h) möglich. Direktanstellung.',
+    contractType: 'permanent',
+    employmentTypes: ['full_time', 'part_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'not_required', nightWeekendWork: 'not_required',
+    travel: 'not_required', onCall: 'not_required',
+  },
+];
+
+// Aktuell angezeigte Jobliste (Testdaten oder echte BA-Ergebnisse).
+// JOBS selbst bleibt unverändert als Fallback-Quelle erhalten.
+let activeJobs = JOBS;
+
+/* ======================================================
+ * 1b. BA-JOBSUCHE-API (optionaler Testmodus)
+ *     Schlägt der Abruf fehl (CORS, Netzwerk, Timeout, leere
+ *     Antwort), wird in triggerSearch() automatisch auf die
+ *     14 Testjobs zurückgefallen.
+ * ====================================================== */
+const BA_API_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs';
+const BA_API_KEY = 'jobboerse-jobsuche'; // öffentlicher Demo-Key der BA, wird nirgends gespeichert
+
+async function fetchBAJobs(query, location, radius) {
+  const params = new URLSearchParams();
+  if (query)    params.set('was', query);
+  if (location) params.set('wo', location);
+  if (location) params.set('umkreis', String(radius));
+  params.set('size', '25');
+
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 6000);
+
+  let res;
+  try {
+    res = await fetch(`${BA_API_URL}?${params.toString()}`, {
+      headers: { 'X-API-Key': BA_API_KEY },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!res.ok) throw new Error(`BA-Jobsuche-API antwortete mit Status ${res.status}`);
+
+  const data = await res.json();
+  const stellen = Array.isArray(data.stellenangebote) ? data.stellenangebote : [];
+  if (stellen.length === 0) throw new Error('BA-Jobsuche-API lieferte keine Treffer');
+
+  return stellen.map(mapBAJobToLocalFormat);
+}
+
+// Wandelt ein BA-Stellenangebot in unser vorhandenes Job-Datenformat um.
+// Alle Felder, die die BA-API nicht liefert, werden bewusst auf
+// 'unknown' bzw. auf "nicht ausblendend" gesetzt, damit die
+// Filterlogik solche Jobs NIE automatisch versteckt.
+function mapBAJobToLocalFormat(s, index) {
+  const ort         = (s.arbeitsort && s.arbeitsort.ort) || 'Ort unbekannt';
+  const entfernung   = (s.arbeitsort && typeof s.arbeitsort.entfernung === 'number') ? s.arbeitsort.entfernung : 0;
+  const link         = s.externeUrl || (s.refnr ? `https://www.arbeitsagentur.de/jobsuche/jobdetail/${s.refnr}` : 'https://www.arbeitsagentur.de/jobsuche/');
+
+  return {
+    id: `ba-${s.refnr || index}`,
+    emoji: '🏢',
+    title: s.titel || s.beruf || 'Stellenbezeichnung unbekannt',
+    company: s.arbeitgeber || 'Arbeitgeber unbekannt',
+    location: ort,
+    distanceKm: entfernung,
+    publishedAt: s.aktuelleVeroeffentlichungsdatum || 'unbekannt',
+    source: 'Bundesagentur für Arbeit',
+    sourceUrl: link,
+    description: s.beruf
+      ? `Beruf laut BA-Jobsuche: ${s.beruf}`
+      : 'Keine weiteren Angaben von der BA-Jobsuche verfügbar.',
+    contractType: 'unknown',
+    // employmentTypes unbekannt -> beide zulassen, sonst würde der
+    // Arbeitszeit-Filter den Job fälschlich ausblenden.
+    employmentTypes: ['full_time', 'part_time'],
+    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
+    shiftWork: 'unknown', nightWeekendWork: 'unknown',
+    travel: 'unknown', onCall: 'unknown',
+  };
+}
+
+/* ======================================================
+ * 2. STARTWERTE (Defaults)
+ *    Alle Startwerte werden auch bei "Filter zurücksetzen"
+ *    wiederhergestellt.
+ * ====================================================== */
+const DEFAULTS = Object.freeze({
+  query:         '',
+  location:      '',
+  radius:        10,
+  contract:      'egal',      // 'egal' | 'permanent' | 'fixed_term'
+  fullTime:      true,
+  partTime:      true,
+  // Arbeitsbedingungen anzeigen:
+  //   false (Standard) = Jobs mit dieser Bedingung 'required' AUSBLENDEN
+  //   true             = Alle Jobs inkl. 'required' ANZEIGEN
+  showShift:     false,
+  showNight:     false,
+  showTravel:    false,
+  showOnCall:    false,
+  // Stellenart ausblenden:
+  //   false (Standard) = diesen Typ NICHT ausblenden
+  //   true             = diesen Typ AUSBLENDEN
+  hideTemp:      false,
+  hideRecruiter: false,
+  hideTraining:  false,
+});
+
+// Aktiver Zustand – wird bei Filteränderungen mutiert
+const state = { ...DEFAULTS, hasSearched: false, visibleCount: 5, dataSource: 'test' };
+
+/* ======================================================
+ * 3. FILTERLOGIK
+ * ====================================================== */
+function filterJobs() {
+  const q       = state.query.trim().toLowerCase();
+  const locQ    = state.location.trim().toLowerCase();
+  const hasLoc  = locQ.length > 0;
+
+  return activeJobs.filter(job => {
+
+    // — Suchbegriff: Titel, Firma, Beschreibung (Groß-/Kleinschreibung egal) —
+    if (q && ![job.title, job.company, job.description].some(f => f.toLowerCase().includes(q))) {
+      return false;
+    }
+
+    // — Ort: Nur filtern wenn das Ortsfeld nicht leer ist —
+    if (hasLoc && !job.location.toLowerCase().includes(locQ)) {
+      return false;
+    }
+
+    // — Radius: Nur anwenden wenn Ort eingegeben, sonst Demo zeigt alle —
+    if (hasLoc && job.distanceKm > state.radius) {
+      return false;
+    }
+
+    // — Vertragsart —
+    if (state.contract === 'permanent'  && job.contractType !== 'permanent')  return false;
+    if (state.contract === 'fixed_term' && job.contractType !== 'fixed_term') return false;
+
+    // — Arbeitszeit: Mind. eine gewählte Zeit muss passen —
+    //   Beide deaktiviert → Warnung, kein Ergebnis (wird in renderResults behandelt)
+    if (!state.fullTime && !state.partTime) return false;
+    const wantedTimes = [];
+    if (state.fullTime) wantedTimes.push('full_time');
+    if (state.partTime) wantedTimes.push('part_time');
+    if (!wantedTimes.some(t => job.employmentTypes.includes(t))) return false;
+
+    // — Arbeitsbedingungen —
+    //   showXxx = false (Toggle AUS, Standard):
+    //     Nur Jobs ausblenden, bei denen die Bedingung 'required' ist.
+    //     Jobs mit 'not_required' oder 'unknown' bleiben IMMER sichtbar.
+    if (!state.showShift  && job.shiftWork         === 'required') return false;
+    if (!state.showNight  && job.nightWeekendWork   === 'required') return false;
+    if (!state.showTravel && job.travel             === 'required') return false;
+    if (!state.showOnCall && job.onCall             === 'required') return false;
+
+    // — Stellenart ausblenden —
+    if (state.hideTemp      && job.isTemporaryWork)       return false;
+    if (state.hideRecruiter && job.isRecruiter)           return false;
+    if (state.hideTraining  && job.isTrainingOrInternship) return false;
+
+    return true;
+  });
+}
+
+/* ======================================================
+ * 4. AKTIVE CHIPS BERECHNEN
+ *    Chip erscheint, wenn ein Filter tatsächlich einschränkt.
+ * ====================================================== */
+function getActiveChips() {
+  const chips = [];
+
+  // Vertragsart
+  if (state.contract === 'permanent')  chips.push({ key: 'contract-perm',   label: 'Nur unbefristet' });
+  if (state.contract === 'fixed_term') chips.push({ key: 'contract-fixed',  label: 'Nur befristet' });
+
+  // Arbeitszeit (einschränkend wenn nur eine Option aktiv)
+  if ( state.fullTime && !state.partTime) chips.push({ key: 'ft-only',  label: 'Nur Vollzeit' });
+  if (!state.fullTime &&  state.partTime) chips.push({ key: 'pt-only',  label: 'Nur Teilzeit' });
+
+  // Arbeitsbedingungen — Chip erscheint wenn Toggle AUS (Bedingung wird ausgeblendet)
+  if (!state.showShift)  chips.push({ key: 'showShift',  label: 'Keine Schichtarbeit' });
+  if (!state.showNight)  chips.push({ key: 'showNight',  label: 'Kein Nacht-/Wochenenddienst' });
+  if (!state.showTravel) chips.push({ key: 'showTravel', label: 'Keine Reisebereitschaft' });
+  if (!state.showOnCall) chips.push({ key: 'showOnCall', label: 'Keine Rufbereitschaft' });
+
+  // Stellenart ausblenden — Chip erscheint wenn Toggle AN
+  if (state.hideTemp)      chips.push({ key: 'hideTemp',      label: 'Zeitarbeit ausgeblendet' });
+  if (state.hideRecruiter) chips.push({ key: 'hideRecruiter', label: 'Personalvermittlung ausgeblendet' });
+  if (state.hideTraining)  chips.push({ key: 'hideTraining',  label: 'Ausbildung & Praktika ausgeblendet' });
+
+  // Ort + Radius (nur wenn Ort eingegeben)
+  if (state.location.trim()) chips.push({ key: 'radius', label: `Radius: ${state.radius} km` });
+
+  return chips;
+}
+
+/* ======================================================
+ * 5. CHIP ENTFERNEN (Klick auf ×)
+ * ====================================================== */
+function removeChip(key) {
+  switch (key) {
+    case 'contract-perm':
+    case 'contract-fixed':
+      state.contract = 'egal';
+      document.getElementById('c-egal').checked = true;
+      break;
+    case 'ft-only':
+      state.partTime = true;
+      syncToggleUI('partTime', true);
+      break;
+    case 'pt-only':
+      state.fullTime = true;
+      syncToggleUI('fullTime', true);
+      break;
+    // Bedingungsfilter aufheben = Toggle auf AN setzen (Bedingung akzeptiert)
+    case 'showShift':
+      state.showShift = true;
+      syncToggleUI('showShift', true);
+      break;
+    case 'showNight':
+      state.showNight = true;
+      syncToggleUI('showNight', true);
+      break;
+    case 'showTravel':
+      state.showTravel = true;
+      syncToggleUI('showTravel', true);
+      break;
+    case 'showOnCall':
+      state.showOnCall = true;
+      syncToggleUI('showOnCall', true);
+      break;
+    // Stellenart-Filter aufheben = Toggle auf AUS setzen
+    case 'hideTemp':
+      state.hideTemp = false;
+      syncToggleUI('hideTemp', false);
+      break;
+    case 'hideRecruiter':
+      state.hideRecruiter = false;
+      syncToggleUI('hideRecruiter', false);
+      break;
+    case 'hideTraining':
+      state.hideTraining = false;
+      syncToggleUI('hideTraining', false);
+      break;
+    case 'radius':
+      // Ort leeren → Radiusfilter entfällt
+      state.location = '';
+      document.getElementById('loc').value = '';
+      break;
+  }
+  update();
+}
+
+/* ======================================================
+ * 6. TAGS FÜR JOBKARTE AUFBAUEN
+ * ====================================================== */
+function buildTags(job) {
+  const tags = [];
+
+  // Vertragsart
+  if (job.contractType === 'permanent')  tags.push({ css: 'tag--perm',  text: 'Unbefristet' });
+  if (job.contractType === 'fixed_term') tags.push({ css: 'tag--fixed', text: 'Befristet' });
+
+  // Stellentyp
+  if (job.isTemporaryWork)       tags.push({ css: 'tag--temp',     text: 'Zeitarbeit' });
+  if (job.isRecruiter)           tags.push({ css: 'tag--recruit',   text: 'Personalvermittlung' });
+  if (job.isTrainingOrInternship) {
+    // Unterscheidung Ausbildung vs. Praktikum vs. Werkstudent anhand Titel
+    const t = job.title.toLowerCase();
+    if (t.includes('ausbildung') || t.includes('duales'))   tags.push({ css: 'tag--training', text: 'Ausbildung' });
+    else if (t.includes('praktikum'))                        tags.push({ css: 'tag--training', text: 'Praktikum' });
+    else if (t.includes('werkstudent') || t.includes('student')) tags.push({ css: 'tag--training', text: 'Werkstudent' });
+    else                                                     tags.push({ css: 'tag--training', text: 'Ausbildung/Praktikum' });
+  }
+  if (!job.isTemporaryWork && !job.isRecruiter && !job.isTrainingOrInternship) {
+    tags.push({ css: 'tag--direct', text: 'Direktanstellung' });
+  }
+
+  // Arbeitszeit
+  if (job.employmentTypes.includes('full_time'))  tags.push({ css: 'tag--worktime', text: 'Vollzeit' });
+  if (job.employmentTypes.includes('part_time'))  tags.push({ css: 'tag--worktime', text: 'Teilzeit' });
+
+  // Schichtarbeit
+  if (job.shiftWork === 'not_required') tags.push({ css: 'tag--cond-ok',  text: 'Keine Schichtarbeit' });
+  if (job.shiftWork === 'required')     tags.push({ css: 'tag--cond-req', text: 'Schichtarbeit erforderlich' });
+
+  // Nacht/Wochenende
+  if (job.nightWeekendWork === 'required') tags.push({ css: 'tag--cond-req', text: 'Nacht- & Wochenendarbeit' });
+
+  // Reisebereitschaft
+  if (job.travel === 'required') tags.push({ css: 'tag--cond-req', text: 'Reisebereitschaft erforderlich' });
+
+  // Rufbereitschaft
+  if (job.onCall === 'required') tags.push({ css: 'tag--cond-req', text: 'Rufbereitschaft erforderlich' });
+
+  return tags;
+}
+
+/* ======================================================
+ * 7. JOB-KARTE RENDERN
+ * ====================================================== */
+function renderCard(job) {
+  const tags = buildTags(job);
+  const tagHtml = tags.map(t => `<span class="tag ${t.css}">${t.text}</span>`).join('');
+
+  return `
+    <article class="job-card">
+      <div class="job-card__header">
+        <div class="job-card__logo">${job.emoji}</div>
+        <div class="job-card__info">
+          <h2 class="job-card__title">${job.title}</h2>
+          <p class="job-card__company">${job.company}</p>
+        </div>
+      </div>
+      <div class="job-card__meta">
+        <span class="job-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          ${job.location}
+        </span>
+        <span class="job-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          ca. ${job.distanceKm} km
+        </span>
+        <span class="job-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          ${job.publishedAt}
+        </span>
+      </div>
+      <p class="job-card__desc">${job.description}</p>
+      <div class="job-card__tags">${tagHtml}</div>
+      <div class="job-card__footer">
+        <span class="job-card__source">📌 ${job.source}</span>
+        <button class="btn-outline" onclick="window.open('${job.sourceUrl}','_blank','noopener')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Originalanzeige öffnen
+        </button>
+      </div>
+    </article>`;
+}
+
+/* ======================================================
+ * 8. ERGEBNISSE RENDERN
+ * ====================================================== */
+function renderResults() {
+  if (!state.hasSearched) return;
+
+  const statsEl  = document.getElementById('results-stats');
+  const chipsEl  = document.getElementById('results-chips');
+  const cardsEl  = document.getElementById('job-cards');
+
+  // Hinweis zur Datenquelle (echte BA-Ergebnisse oder Testdaten-Fallback)
+  const bannerEl = document.getElementById('data-source-banner');
+  if (state.dataSource === 'real') {
+    bannerEl.className = 'data-source-banner data-source-banner--real';
+    bannerEl.innerHTML = '✅ Echte BA-Ergebnisse';
+  } else {
+    bannerEl.className = 'data-source-banner data-source-banner--test';
+    bannerEl.innerHTML = '⚠️ Testdaten (API nicht erreichbar)';
+  }
+
+  // Beide Arbeitszeit-Optionen deaktiviert → Warnung statt Ergebnisse
+  if (!state.fullTime && !state.partTime) {
+    statsEl.innerHTML = '';
+    chipsEl.innerHTML = '';
+    cardsEl.innerHTML = `
+      <div class="worktime-warning">
+        <p class="worktime-warning__text">
+          ⚠️ Bitte wähle mindestens Vollzeit, Teilzeit oder beide Optionen aus,<br>
+          damit Ergebnisse angezeigt werden können.
+        </p>
+      </div>`;
+    return;
+  }
+
+  const found      = filterJobs();
+  const total      = activeJobs.length;
+  const hidden     = total - found.length;
+
+  // Statistik-Zeile
+  statsEl.innerHTML = `
+    <span class="stat-item">
+      <span class="stat-dot stat-dot--total"></span>
+      <span class="stat-value">${total}</span>&nbsp;Stellen geprüft
+    </span>
+    <span class="stat-item">
+      <span class="stat-dot stat-dot--hidden"></span>
+      <span class="stat-value">${hidden}</span>&nbsp;automatisch ausgeblendet
+    </span>
+    <span class="stat-item">
+      <span class="stat-dot stat-dot--found"></span>
+      <span class="stat-value">${found.length}</span>&nbsp;passende Stellen
+    </span>`;
+
+  // Aktive Filter-Chips
+  const chips = getActiveChips();
+  if (chips.length > 0) {
+    chipsEl.innerHTML = chips.map(c => `
+      <span class="chip">
+        ${c.label}
+        <span class="chip__remove" data-key="${c.key}" role="button" title="Filter entfernen">×</span>
+      </span>`).join('');
+    // Events für Chip-Remove-Buttons
+    chipsEl.querySelectorAll('.chip__remove').forEach(btn => {
+      btn.addEventListener('click', () => removeChip(btn.dataset.key));
+    });
+  } else {
+    chipsEl.innerHTML = '';
+  }
+
+  // Badge im Filter-Header (Anzahl aktiver Einschränkungen)
+  const badge = document.getElementById('filter-badge');
+  // Zähle nur wirklich einschränkende Filter (Bedingungen-AUS + Ausblenden-AN + Vertrag + Radius)
+  const restrictCount = chips.length;
+  if (restrictCount > 0) {
+    badge.textContent = restrictCount;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+
+  // Keine Treffer
+  if (found.length === 0) {
+    cardsEl.innerHTML = `
+      <div class="no-results">
+        <div class="no-results__icon">🔍</div>
+        <p class="no-results__title">Keine passenden Stellen gefunden.</p>
+        <p class="no-results__text">Passe deine Filter an oder setze sie zurück.</p>
+      </div>`;
+    return;
+  }
+
+  // Karten (seitenweise: visibleCount)
+  const visible = found.slice(0, state.visibleCount);
+  let html = visible.map(renderCard).join('');
+
+  if (found.length > state.visibleCount) {
+    const rest = found.length - state.visibleCount;
+    html += `
+      <div class="show-more-row">
+        <button class="btn-show-more" id="btn-show-more">
+          Weitere ${rest} ${rest === 1 ? 'Stelle' : 'Stellen'} anzeigen
+        </button>
+      </div>`;
+  }
+
+  cardsEl.innerHTML = html;
+
+  const moreBtn = document.getElementById('btn-show-more');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      state.visibleCount += 5;
+      renderResults();
+    });
+  }
+}
+
+/* ======================================================
+ * 9. UPDATE (alle abhängigen Elemente neu rendern)
+ * ====================================================== */
+function update() {
+  renderResults();
+}
+
+/* ======================================================
+ * 10. TOGGLE-UI SYNCHRONISIEREN
+ *     Setzt Checkbox und .active-Klasse auf Zielzustand.
+ * ====================================================== */
+function syncToggleUI(key, value) {
+  const cb   = document.getElementById('t-' + key);
+  const item = document.querySelector(`[data-toggle="${key}"]`);
+  if (cb)   cb.checked = value;
+  if (item) item.classList.toggle('active', value);
+}
+
+/* ======================================================
+ * 11. TOGGLE BINDEN (generisch)
+ *     stateKey:  Schlüssel in state
+ *     onValue:   state-Wert wenn Checkbox checked
+ *     offValue:  state-Wert wenn Checkbox unchecked
+ * ====================================================== */
+function bindToggle(toggleKey, stateKey, onValue, offValue) {
+  const item = document.querySelector(`[data-toggle="${toggleKey}"]`);
+  const cb   = document.getElementById('t-' + toggleKey);
+  if (!item || !cb) return;
+
+  const apply = (checked) => {
+    state[stateKey] = checked ? onValue : offValue;
+    item.classList.toggle('active', checked);
+    update();
+  };
+
+  // Klick auf das gesamte Toggle-Item (außer auf den Switch selbst,
+  // dessen <label> den Klick nativ an die Checkbox weiterleitet und
+  // sonst zu einem doppelten Toggle führen würde)
+  item.addEventListener('click', e => {
+    if (e.target.closest('.toggle-switch')) return;
+    cb.checked = !cb.checked;
+    apply(cb.checked);
+  });
+
+  // Direkte Checkbox-Änderung
+  cb.addEventListener('change', () => apply(cb.checked));
+}
+
+/* ======================================================
+ * 12. ALLE FILTER-EVENTS INITIALISIEREN
+ * ====================================================== */
+
+// Radius-Buttons
+document.querySelectorAll('.radius-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.radius-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.radius = parseInt(btn.dataset.radius, 10);
+    update();
+  });
+});
+
+// Vertragsart-Radio
+document.querySelectorAll('input[name="contract"]').forEach(r => {
+  r.addEventListener('change', () => {
+    state.contract = r.value;
+    update();
+  });
+});
+
+// Arbeitszeit-Toggles
+bindToggle('fullTime', 'fullTime', true, false);
+bindToggle('partTime', 'partTime', true, false);
+
+// Arbeitsbedingungen (Toggle AN = Bedingung akzeptiert = show required)
+bindToggle('showShift',  'showShift',  true, false);
+bindToggle('showNight',  'showNight',  true, false);
+bindToggle('showTravel', 'showTravel', true, false);
+bindToggle('showOnCall', 'showOnCall', true, false);
+
+// Stellenart ausblenden (Toggle AN = Typ ausblenden)
+bindToggle('hideTemp',      'hideTemp',      true, false);
+bindToggle('hideRecruiter', 'hideRecruiter', true, false);
+bindToggle('hideTraining',  'hideTraining',  true, false);
+
+// Filter-Header aufklappen / zuklappen
+document.getElementById('filter-header').addEventListener('click', () => {
+  const body    = document.getElementById('filter-body');
+  const chevron = document.getElementById('filter-chevron');
+  const open    = !body.classList.contains('collapsed');
+  body.classList.toggle('collapsed', open);
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+  document.getElementById('filter-header').setAttribute('aria-expanded', String(!open));
+});
+
+// Filter zurücksetzen
+document.getElementById('btn-reset').addEventListener('click', () => {
+  // Zustand auf Defaults zurücksetzen
+  Object.assign(state, DEFAULTS);
+  state.visibleCount = 5;
+
+  // Suchfelder leeren
+  document.getElementById('q').value   = '';
+  document.getElementById('loc').value = '';
+
+  // Radius-Buttons
+  document.querySelectorAll('.radius-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.radius, 10) === DEFAULTS.radius);
+  });
+
+  // Vertragsart-Radio
+  document.getElementById('c-egal').checked = true;
+
+  // Arbeitszeit
+  syncToggleUI('fullTime', DEFAULTS.fullTime);
+  syncToggleUI('partTime', DEFAULTS.partTime);
+
+  // Arbeitsbedingungen (alle zurück auf Standard = false = AUS)
+  ['showShift','showNight','showTravel','showOnCall'].forEach(k => syncToggleUI(k, DEFAULTS[k]));
+
+  // Stellenart (alle zurück auf Standard = false = AUS)
+  ['hideTemp','hideRecruiter','hideTraining'].forEach(k => syncToggleUI(k, DEFAULTS[k]));
+
+  update();
+});
+
+/* ======================================================
+ * 13. SUCHE AUSLÖSEN
+ * ====================================================== */
+async function triggerSearch() {
+  state.query    = document.getElementById('q').value;
+  state.location = document.getElementById('loc').value;
+  state.visibleCount = 5;
+
+  const loader  = document.getElementById('loading-overlay');
+  const results = document.getElementById('results-section');
+
+  loader.classList.add('visible');
+  results.classList.remove('visible');
+
+  // Mindestanzeigedauer des Loaders, unabhängig davon wie schnell
+  // die API antwortet oder fehlschlägt (UX bleibt wie zuvor).
+  const minDelay = new Promise(resolve => setTimeout(resolve, 700));
+
+  try {
+    activeJobs = await fetchBAJobs(state.query, state.location, state.radius);
+    state.dataSource = 'real';
+  } catch (err) {
+    // Abruf fehlgeschlagen (CORS, Netzwerk, Timeout, keine Treffer, ...)
+    // → unverändert auf die vorhandenen 14 Testjobs zurückfallen.
+    console.warn('BA-Jobsuche-API nicht erreichbar, verwende Testdaten:', err);
+    activeJobs = JOBS;
+    state.dataSource = 'test';
+  }
+
+  await minDelay;
+
+  loader.classList.remove('visible');
+  state.hasSearched = true;
+  results.classList.add('visible');
+  update();
+  // Sanftes Scrollen zum Ergebnisbereich
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('btn-search').addEventListener('click', triggerSearch);
+
+// Enter-Taste in Suchfeldern
+['q', 'loc'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') triggerSearch();
+  });
+});
+
+/* ======================================================
+ * 14. SERVICE WORKER REGISTRIERUNG
+ * ====================================================== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r  => console.log('[Job-Agent] SW:', r.scope))
+      .catch(e => console.warn('[Job-Agent] SW-Fehler:', e));
+  });
+}
+</script>
+</body>
+</html>

@@ -992,8 +992,8 @@ function filterJobs() {
     }
 
     // — Vertragsart —
-    if (state.contract === 'permanent'  && job.contractType !== 'permanent')  return false;
-    if (state.contract === 'fixed_term' && job.contractType !== 'fixed_term') return false;
+    if (state.contract === 'permanent'  && job.contractType !== 'unlimited') return false;
+    if (state.contract === 'fixed_term' && job.contractType !== 'limited') return false;
 
     // — Arbeitszeit: Mind. eine gewählte Zeit muss passen —
     //   Beide deaktiviert → Warnung, kein Ergebnis (wird in renderResults behandelt)

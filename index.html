@@ -840,67 +840,99 @@ let activeJobs = JOBS;
  *     Antwort), wird in triggerSearch() automatisch auf die
  *     14 Testjobs zurückgefallen.
  * ====================================================== */
-const BA_API_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs';
-const BA_API_KEY = 'jobboerse-jobsuche'; // öffentlicher Demo-Key der BA, wird nirgends gespeichert
+
+  const BA_API_URL = '/api/jobs';
 
 async function fetchBAJobs(query, location, radius) {
   const params = new URLSearchParams();
-  if (query)    params.set('was', query);
+
+  if (query) params.set('was', query);
   if (location) params.set('wo', location);
   if (location) params.set('umkreis', String(radius));
-  params.set('size', '25');
 
   const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 6000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  let res;
   try {
-    res = await fetch(`${BA_API_URL}?${params.toString()}`, {
-      headers: { 'X-API-Key': BA_API_KEY },
-      signal: controller.signal,
+    const res = await fetch(`${BA_API_URL}?${params.toString()}`, {
+      signal: controller.signal
     });
+
+    if (!res.ok) {
+      throw new Error(`Job-Agent API antwortete mit Status ${res.status}`);
+    }
+
+    const data = await res.json();
+    const stellen = Array.isArray(data.ergebnisliste)
+      ? data.ergebnisliste
+      : [];
+
+    if (stellen.length === 0) {
+      throw new Error('BA-Jobsuche lieferte keine Treffer');
+    }
+
+    return stellen.map(mapBAJobToLocalFormat);
+
   } finally {
     clearTimeout(timeoutId);
   }
-
-  if (!res.ok) throw new Error(`BA-Jobsuche-API antwortete mit Status ${res.status}`);
-
-  const data = await res.json();
-  const stellen = Array.isArray(data.stellenangebote) ? data.stellenangebote : [];
-  if (stellen.length === 0) throw new Error('BA-Jobsuche-API lieferte keine Treffer');
-
-  return stellen.map(mapBAJobToLocalFormat);
 }
 
-// Wandelt ein BA-Stellenangebot in unser vorhandenes Job-Datenformat um.
-// Alle Felder, die die BA-API nicht liefert, werden bewusst auf
-// 'unknown' bzw. auf "nicht ausblendend" gesetzt, damit die
-// Filterlogik solche Jobs NIE automatisch versteckt.
 function mapBAJobToLocalFormat(s, index) {
-  const ort         = (s.arbeitsort && s.arbeitsort.ort) || 'Ort unbekannt';
-  const entfernung   = (s.arbeitsort && typeof s.arbeitsort.entfernung === 'number') ? s.arbeitsort.entfernung : 0;
-  const link         = s.externeUrl || (s.refnr ? `https://www.arbeitsagentur.de/jobsuche/jobdetail/${s.refnr}` : 'https://www.arbeitsagentur.de/jobsuche/');
+  const ort =
+    s.stellenlokationen?.[0]?.adresse?.ort ||
+    'Ort unbekannt';
 
   return {
-    id: `ba-${s.refnr || index}`,
+    id: `ba-${s.referenznummer || index}`,
     emoji: '🏢',
-    title: s.titel || s.beruf || 'Stellenbezeichnung unbekannt',
-    company: s.arbeitgeber || 'Arbeitgeber unbekannt',
+    title: s.stellenangebotsTitel || 'Stellenbezeichnung unbekannt',
+    company: s.firma || 'Arbeitgeber unbekannt',
     location: ort,
-    distanceKm: entfernung,
-    publishedAt: s.aktuelleVeroeffentlichungsdatum || 'unbekannt',
+    distanceKm: typeof s.entfernung === 'number' ? s.entfernung : 0,
+
+    publishedAt:
+      s.veroeffentlichungszeitraum?.von ||
+      s.datumErsteVeroeffentlichung ||
+      'unbekannt',
+
     source: 'Bundesagentur für Arbeit',
-    sourceUrl: link,
-    description: s.beruf
-      ? `Beruf laut BA-Jobsuche: ${s.beruf}`
-      : 'Keine weiteren Angaben von der BA-Jobsuche verfügbar.',
-    contractType: 'unknown',
-    // employmentTypes unbekannt -> beide zulassen, sonst würde der
-    // Arbeitszeit-Filter den Job fälschlich ausblenden.
-    employmentTypes: ['full_time', 'part_time'],
-    isTemporaryWork: false, isRecruiter: false, isTrainingOrInternship: false,
-    shiftWork: 'unknown', nightWeekendWork: 'unknown',
-    travel: 'unknown', onCall: 'unknown',
+    sourceUrl:
+      s.externeURL ||
+      'https://www.arbeitsagentur.de/jobsuche/',
+
+    description:
+      s.hauptberuf ||
+      'Keine weiteren Angaben von der BA-Jobsuche verfügbar.',
+
+    contractType:
+      s.vertragsdauer === 'UNBEFRISTET'
+        ? 'unlimited'
+        : s.vertragsdauer
+          ? 'limited'
+          : 'unknown',
+
+    employmentTypes: [
+      ...(s.arbeitszeitVollzeit ? ['full_time'] : []),
+      ...(s.arbeitszeitTeilzeitAbend ||
+         s.arbeitszeitTeilzeitNachmittag ||
+         s.arbeitszeitTeilzeitVormittag ||
+         s.arbeitszeitTeilzeitFlexibel
+        ? ['part_time'] : [])
+    ],
+
+    isTemporaryWork: s.zeitarbeit === true,
+    isRecruiter: false,
+    isTrainingOrInternship: s.stellenangebotsart !== 'ARBEIT',
+
+    shiftWork:
+      s.arbeitszeitSchichtNachtWochenende === true ? 'yes' : 'no',
+
+    nightWeekendWork:
+      s.arbeitszeitSchichtNachtWochenende === true ? 'yes' : 'no',
+
+    travel: 'unknown',
+    onCall: 'unknown'
   };
 }
 

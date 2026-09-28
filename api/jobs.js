@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
     url.searchParams.set('angebotsart', '1');
     url.searchParams.set('page', '1');
-    url.searchParams.set('size', '5');
+    url.searchParams.set('size', '25');
     url.searchParams.set('pav', 'false');
 
     if (req.query.was) url.searchParams.set('was', req.query.was);

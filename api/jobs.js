@@ -18,13 +18,22 @@ export default async function handler(req, res) {
       }
     });
 
-    const data = await response.json();
+    const text = await response.text();
 
-    res.status(response.status).json(data);
+    if (!response.ok) {
+      return res.status(500).json({
+        baStatus: response.status,
+        baAntwort: text
+      });
+    }
+
+    res.status(200).send(text);
+
   } catch (error) {
     console.error('BA API Fehler:', error);
+
     res.status(500).json({
-      error: 'BA-Jobsuche konnte nicht erreicht werden.'
+      fehler: error.message
     });
   }
 }

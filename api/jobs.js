@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     if (req.query.was) url.searchParams.set('was', req.query.was);
     if (req.query.wo) url.searchParams.set('wo', req.query.wo);
     if (req.query.umkreis) url.searchParams.set('umkreis', req.query.umkreis);
+    if (req.query.zeitarbeit !== undefined) {
+  url.searchParams.set('zeitarbeit', req.query.zeitarbeit);
+}
 
     const response = await fetch(url, {
       headers: {

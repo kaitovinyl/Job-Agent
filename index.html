@@ -843,12 +843,13 @@ let activeJobs = JOBS;
 
   const BA_API_URL = '/api/jobs';
 
-async function fetchBAJobs(query, location, radius) {
+async function fetchBAJobs(query, location, radius, hideTemp) {
   const params = new URLSearchParams();
 
   if (query) params.set('was', query);
   if (location) params.set('wo', location);
   if (location) params.set('umkreis', String(radius));
+  if (hideTemp) params.set('zeitarbeit', 'false');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -1468,7 +1469,12 @@ async function triggerSearch() {
   const minDelay = new Promise(resolve => setTimeout(resolve, 700));
 
   try {
-    activeJobs = await fetchBAJobs(state.query, state.location, state.radius);
+    activeJobs = await fetchBAJobs(
+  state.query,
+  state.location,
+  state.radius,
+  state.hideTemp
+);
     state.dataSource = 'real';
   } catch (err) {
     // Abruf fehlgeschlagen (CORS, Netzwerk, Timeout, keine Treffer, ...)

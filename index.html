@@ -840,7 +840,7 @@ let activeJobs = JOBS;
  *     Antwort), wird in triggerSearch() automatisch auf die
  *     14 Testjobs zurückgefallen.
  * ====================================================== */
-const BA_API_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs';
+const BA_API_URL = '/api/ba-jobs'; // Vercel-Proxy – ruft BA-API serverseitig auf (kein CORS)
 const BA_API_KEY = 'jobboerse-jobsuche'; // öffentlicher Demo-Key der BA, wird nirgends gespeichert
 
 async function fetchBAJobs(query, location, radius) {

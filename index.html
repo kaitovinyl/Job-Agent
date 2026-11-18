@@ -843,11 +843,12 @@ let activeJobs = JOBS;
 const BA_API_URL = '/api/ba-jobs'; // Vercel-Proxy – ruft BA-API serverseitig auf (kein CORS)
 const BA_API_KEY = 'jobboerse-jobsuche'; // öffentlicher Demo-Key der BA, wird nirgends gespeichert
 
-async function fetchBAJobs(query, location, radius) {
+async function fetchBAJobs(query, location, radius, hideTemp) {
   const params = new URLSearchParams();
   if (query)    params.set('was', query);
   if (location) params.set('wo', location);
   if (location) params.set('umkreis', String(radius));
+  if (hideTemp) params.set('zeitarbeit', 'false'); // serverseitig: BA filtert Zeitarbeit heraus
   params.set('size', '25');
 
   const controller = new AbortController();
@@ -900,6 +901,9 @@ function mapBAJobToLocalFormat(s, index) {
       : 'Keine weiteren Angaben von der BA-Jobsuche verfügbar.',
     contractType: s.vertragsdauer === 'UNBEFRISTET' ? 'permanent' : (s.vertragsdauer === 'BEFRISTET' ? 'fixed_term' : 'unknown'),
     employmentTypes: empTypes,
+    // Nur Kennzeichnung (Heuristik nach Firmenname) – blendet NICHT aus.
+    // Ausblenden erfolgt serverseitig über zeitarbeit=false (siehe fetchBAJobs).
+    tempIsHeuristic: true,
     isTemporaryWork: /(personal|personaldienstleistung|personalservice|zeitarbeit|leiharbeit|randstad|adecco|walter-fach-kraft|manpower|dekra)/i.test(s.firma || ''),
     isRecruiter: /(personalberatung|personalvermittlung|personalvermittler|recruiting|recruitment|headhunter|headhunting|executive search|hays|michael page|page personnel|robert half|amadeus fire|kienbaum)/i.test(s.firma || ''),
     isTrainingOrInternship: s.stellenangebotsart === 'AUSBILDUNG' || s.stellenangebotsart === 'PRAKTIKUM_TRAINEE',
@@ -986,7 +990,8 @@ function filterJobs() {
     if (!state.showOnCall && job.onCall             === 'required') return false;
 
     // — Stellenart ausblenden —
-    if (state.hideTemp      && job.isTemporaryWork)       return false;
+    // BA-Jobs: Zeitarbeit wird serverseitig gefiltert; Namens-Heuristik blendet nie aus.
+    if (state.hideTemp      && job.isTemporaryWork && !job.tempIsHeuristic) return false;
     if (state.hideRecruiter && job.isRecruiter)           return false;
     if (state.hideTraining  && job.isTrainingOrInternship) return false;
 
@@ -1094,7 +1099,7 @@ function buildTags(job) {
   if (job.contractType === 'fixed_term') tags.push({ css: 'tag--fixed', text: 'Befristet' });
 
   // Stellentyp
-  if (job.isTemporaryWork)       tags.push({ css: 'tag--temp',     text: 'Zeitarbeit' });
+  if (job.isTemporaryWork)       tags.push({ css: 'tag--temp',     text: job.tempIsHeuristic ? 'Zeitarbeit (vermutet)' : 'Zeitarbeit' });
   if (job.isRecruiter)           tags.push({ css: 'tag--recruit',   text: 'Personalvermittlung' });
   if (job.isTrainingOrInternship) {
     // Unterscheidung Ausbildung vs. Praktikum vs. Werkstudent anhand Titel
@@ -1299,7 +1304,40 @@ function renderResults() {
 /* ======================================================
  * 9. UPDATE (alle abhängigen Elemente neu rendern)
  * ====================================================== */
+// Letzte erfolgreiche BA-Suche (außerhalb von state, damit "Filter zurücksetzen" sie nicht löscht)
+let lastSearch = null;   // { query, location, radius, hideTemp }
+let tempRefetching = false;
+
+// "Zeitarbeit ausblenden" wirkt serverseitig: ändert sich der Schalter nach einer
+// echten BA-Suche, wird dieselbe Suche mit/ohne zeitarbeit=false neu abgerufen.
+async function refetchForTemp() {
+  if (tempRefetching) return;
+  tempRefetching = true;
+  const wanted = state.hideTemp;
+  const loader = document.getElementById('loading-overlay');
+  loader.classList.add('visible');
+  try {
+    activeJobs = await fetchBAJobs(lastSearch.query, lastSearch.location, lastSearch.radius, wanted);
+    lastSearch.hideTemp = wanted;
+    state.visibleCount = 5;
+  } catch (err) {
+    // Neuabruf fehlgeschlagen: alte Daten behalten, Schalter zurücksetzen (sonst wäre er wirkungslos)
+    console.warn('BA-Neuabruf (Zeitarbeit) fehlgeschlagen:', err);
+    state.hideTemp = lastSearch.hideTemp;
+    syncToggleUI('hideTemp', state.hideTemp);
+    alert('Der Zeitarbeits-Filter konnte nicht angewendet werden (BA nicht erreichbar). Bitte erneut versuchen.');
+  } finally {
+    loader.classList.remove('visible');
+    tempRefetching = false;
+  }
+  update();
+}
+
 function update() {
+  if (state.dataSource === 'real' && lastSearch && lastSearch.hideTemp !== state.hideTemp) {
+    refetchForTemp();
+    return;
+  }
   renderResults();
 }
 
@@ -1441,14 +1479,16 @@ async function triggerSearch() {
   const minDelay = new Promise(resolve => setTimeout(resolve, 700));
 
   try {
-    activeJobs = await fetchBAJobs(state.query, state.location, state.radius);
+    activeJobs = await fetchBAJobs(state.query, state.location, state.radius, state.hideTemp);
     state.dataSource = 'real';
+    lastSearch = { query: state.query, location: state.location, radius: state.radius, hideTemp: state.hideTemp };
   } catch (err) {
     // Abruf fehlgeschlagen (CORS, Netzwerk, Timeout, HTTP-Fehler, ...)
     // → unverändert auf die vorhandenen 14 Testjobs zurückfallen.
     console.warn('BA-Jobsuche-API nicht erreichbar, verwende Testdaten:', err);
     activeJobs = JOBS;
     state.dataSource = 'test';
+    lastSearch = null;
   }
 
   await minDelay;

@@ -14,6 +14,7 @@ const ALLOWED_PARAMS = {
   umkreis: { numeric: true, min: 0, max: 200 },
   size:    { numeric: true, min: 1, max: 100 },
   page:    { numeric: true, min: 0, max: 999 },
+  zeitarbeit: { allowed: ['true', 'false'] }, // BA-Facette: nur true/false erlaubt
 };
 
 module.exports = async function handler(req, res) {
@@ -35,6 +36,16 @@ module.exports = async function handler(req, res) {
     // Längenprüfung für Textfelder
     if (rules.maxLen && val.length > rules.maxLen) {
       return res.status(400).json({ error: `Parameter "${key}" zu lang.` });
+    }
+
+    // Whitelist-Prüfung (z. B. zeitarbeit nur "true" oder "false")
+    if (rules.allowed) {
+      const v = val.toLowerCase();
+      if (!rules.allowed.includes(v)) {
+        return res.status(400).json({ error: `Parameter "${key}" muss einer von: ${rules.allowed.join(', ')} sein.` });
+      }
+      upstream.set(key, v);
+      continue;
     }
 
     // Zahlenprüfung

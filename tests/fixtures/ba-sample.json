@@ -1,0 +1,170 @@
+{
+  "ergebnisliste": [
+    {
+      "stellenangebotsart": "ARBEIT",
+      "stellenangebotsTitel": "Industriemechaniker(m/w/d)",
+      "arbeitszeitSchichtNachtWochenende": true,
+      "arbeitszeitVollzeit": true,
+      "eintrittszeitraum": {
+        "von": "2026-09-24"
+      },
+      "verguetungsangabe": "KEINE_ANGABEN",
+      "vertragsdauer": "UNBEFRISTET",
+      "stellenlokationen": [
+        {
+          "adresse": {
+            "plz": "80333",
+            "ort": "München",
+            "region": "BAYERN",
+            "land": "DEUTSCHLAND"
+          },
+          "breite": 48.1453176,
+          "laenge": 11.5687856
+        }
+      ],
+      "veroeffentlichungszeitraum": {
+        "von": "2026-09-24"
+      },
+      "datumErsteVeroeffentlichung": "2026-09-24",
+      "aenderungsdatum": "2026-09-24T10:40:38.432",
+      "hauptberuf": "Industriemechaniker/in",
+      "firma": "Walter-Fach-Kraft GmbH & Co. KG",
+      "referenznummer": "10001-1003756400-S",
+      "entfernung": 0,
+      "alleBerufe": [
+        "Industriemechaniker/in"
+      ]
+    },
+    {
+      "stellenangebotsart": "ARBEIT",
+      "stellenangebotsTitel": "Industriemechaniker (m/w/d)",
+      "quereinstiegGeeignet": false,
+      "arbeitszeitSchichtNachtWochenende": false,
+      "arbeitszeitTeilzeitAbend": false,
+      "arbeitszeitTeilzeitNachmittag": false,
+      "arbeitszeitTeilzeitVormittag": false,
+      "arbeitszeitTeilzeitFlexibel": false,
+      "arbeitszeitVollzeit": true,
+      "eintrittszeitraum": {
+        "von": "2026-09-30"
+      },
+      "verguetungsangabe": "JAHRESGEHALT",
+      "artDerVerguetung": "GEHALTSSPANNE",
+      "gehaltsspanneVon": 39600,
+      "gehaltsspanneBis": 54000,
+      "vertragsdauer": "UNBEFRISTET",
+      "istGeringfuegigeBeschaeftigung": false,
+      "stellenlokationen": [
+        {
+          "adresse": {
+            "plz": "80939",
+            "ort": "München",
+            "region": "BAYERN",
+            "land": "DEUTSCHLAND"
+          },
+          "breite": 48.2051544,
+          "laenge": 11.6099662
+        }
+      ],
+      "homeofficemoeglich": false,
+      "chiffrenummer": "34863233",
+      "veroeffentlichungszeitraum": {
+        "von": "2026-09-29"
+      },
+      "datumErsteVeroeffentlichung": "2026-09-29",
+      "aenderungsdatum": "2026-09-29T10:01:04.839",
+      "externeURL": "https://jobboard.compleet.com/?externalId=4950990322",
+      "hauptberuf": "Industriemechaniker/in",
+      "firma": "Randstad Deutschland",
+      "referenznummer": "11119-4950990322-S",
+      "entfernung": 7,
+      "alleBerufe": [
+        "Industriemechaniker/in"
+      ]
+    },
+    {
+      "stellenangebotsart": "ARBEIT",
+      "stellenangebotsTitel": "Industriemechaniker m/w/d",
+      "quereinstiegGeeignet": false,
+      "arbeitszeitVollzeit": true,
+      "eintrittszeitraum": {
+        "von": "2026-10-12"
+      },
+      "verguetungsangabe": "KEINE_ANGABEN",
+      "vertragsdauer": "KEINE_ANGABE",
+      "istGeringfuegigeBeschaeftigung": false,
+      "stellenlokationen": [
+        {
+          "adresse": {
+            "plz": "80335",
+            "ort": "München",
+            "region": "BAYERN",
+            "land": "DEUTSCHLAND"
+          },
+          "breite": 48.145023722,
+          "laenge": 11.554084596
+        }
+      ],
+      "veroeffentlichungszeitraum": {
+        "von": "2026-09-24"
+      },
+      "datumErsteVeroeffentlichung": "2026-09-24",
+      "aenderungsdatum": "2026-09-24T17:05:17.442",
+      "hauptberuf": "Industriemechaniker/in",
+      "alternativBeruf1": "Anlagenmechaniker/in",
+      "alternativBeruf2": "Konstruktionsmechaniker/in",
+      "firma": "Younivers GmbH",
+      "referenznummer": "14638-13875405-S",
+      "entfernung": 1,
+      "alleBerufe": [
+        "Industriemechaniker/in",
+        "Anlagenmechaniker/in",
+        "Konstruktionsmechaniker/in"
+      ]
+    }
+  ],
+  "maxErgebnisse": 826,
+  "page": 1,
+  "size": 3,
+  "facetten": {
+    "befristung": {
+      "counts": {
+        "1": 12,
+        "2": 556,
+        "3": 258
+      },
+      "maxCount": 826
+    },
+    "zeitarbeit": {
+      "counts": {
+        "false": 295,
+        "true": 531
+      },
+      "maxCount": 826
+    },
+    "angebotsart": {
+      "counts": {
+        "1": 769,
+        "4": 55,
+        "34": 2
+      },
+      "maxCount": 826
+    },
+    "pav": {
+      "counts": {
+        "false": 762,
+        "true": 64
+      },
+      "maxCount": 826
+    },
+    "arbeitszeit": {
+      "counts": {
+        "mj": 1,
+        "snw": 126,
+        "tz": 9,
+        "vz": 804
+      },
+      "maxCount": 826
+    }
+  }
+}
